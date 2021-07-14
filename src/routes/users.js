@@ -1,7 +1,9 @@
 const express = require('express');
+const auth = require('../security/auth');
+
 const router = express.Router();
 
-router.get('/users', (req, res)=> {
+router.get('/users', auth.auth, (req, res)=> {
     //Code here
     res.send('no hay usuarios');
 });
