@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-const firma = 'Firma_para_proyecto';
+const firma = 'Firma_para_proyecto'; //manejo seguro ; preguntar sobre practica seguro
 
 module.exports.generateToken = (data) => {
     return jwt.sign(data, firma);

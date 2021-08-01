@@ -4,7 +4,7 @@ const actions = require('../database/actions');
 
 const router = express.Router();
 
-router.get('/users', auth.auth, async (req, res)=> {
+router.get('/users', auth.auth, async (req, res)=> { //hacer el middleware para autenticar rol ; usamos jwt para obtener el json descrifrado
     const result = await actions.Select('SELECT * FROM usuarios', {});
     res.json(result);
 });
@@ -27,17 +27,17 @@ router.post('/user', async (req, res)=> {
     }    
 });
 
-router.put('/user/:id', auth.auth, async (req, res)=> {
+router.put('/user/:id', auth.auth, async (req, res)=> { // leer
     //Code here
 });
 
-router.patch('/user/:id', auth.auth, async (req, res)=> {
+router.patch('/user/:id', auth.auth, async (req, res)=> { // restringir modificaciones para usuario (modificarse a si mismo) ; // autenticar admin
     const user = req.body;
     const result = await actions.Update(`UPDATE usuarios SET email = :email WHERE id = :id`, user);
     res.json(result);
 });
 
-router.delete('/user/:id', auth.auth, async (req, res)=> {
+router.delete('/user/:id', auth.auth, async (req, res)=> { // solo admin
     //Code here
 });
 

@@ -4,6 +4,7 @@ const actions = require('../database/actions');
 
 const router = express.Router();
 
+// login (usuario, admin)
 router.post('/login', async (req, res)=> {
     const params = req.body;
     const user = {
