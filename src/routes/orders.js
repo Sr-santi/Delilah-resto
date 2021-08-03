@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../security/auth');
 
 router.get('/orders', auth.auth, async (req, res)=> { //hacer el middleware para autenticar rol
     //usuario solo ve sus ordenes
