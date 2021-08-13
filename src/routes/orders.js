@@ -55,3 +55,45 @@ router.delete('/order/:id', (req, res)=> {
 });
 
 module.exports = router;
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *      Order:
+ *        type: object
+ *        properties:  
+ *          id: 
+ *              type: integer
+ *              description: id del usuario
+ *              example: 1  
+ *          nombreUsuaurio: 
+ *              type: string
+ *              description: nombre del usuario
+ *              example: 'Wvanegas'
+ *          nombreCompleto: 
+ *              type: string
+ *              description: nombre completo del usuario
+ *              example: 'Walter vanegas'
+ *          email: 
+ *              type: string
+ *              description: email del usuario
+ *              example: 'Waltervanegas@gmail.com'
+ *          telefono: 
+ *              type: string
+ *              description: telefono del usuario
+ *              example: '3007002250'
+ *          direccion: 
+ *              type: string
+ *              description: direccion del usuario
+ *              example: 'N/A'
+ *          contrasena: 
+ *              type: string
+ *              description: contraseña del usuario
+ *              example: '1234'
+ *          idRole: 
+ *              type: integer
+ *              description: rol del usuario
+ *              example: '2'
+ * 
+*/
