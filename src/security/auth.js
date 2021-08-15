@@ -71,3 +71,16 @@ module.exports.authUser = (req,res,next) => {
         });
     }
 }
+
+//completar
+// autenticar objeto
+module.exports.authObject = (req,res,next) => {
+    try {
+        
+    } catch (error) {
+        res.status(422).json({
+            error: `Unprocessable Entity`,
+            codeError: 04,
+        })
+    }
+}
