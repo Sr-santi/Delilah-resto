@@ -4,6 +4,31 @@ const actions = require('../database/actions');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /users:
+ *  get:
+ *      tags:
+ *      - Users
+ *      description: Trae todos los usuarios del sistema
+ *      parameters:
+ *         - in: header
+ *           name: authorization
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: todos los usurios del sistema
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                          type: "array"
+ *                          items:
+ *                              $ref: "#/components/schemas/User"
+ */
 router.get('/users', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
@@ -14,6 +39,35 @@ router.get('/users', auth.auth, auth.authRol, async (req, res)=> {
     res.json(result)
     
 });
+
+/**
+ * @swagger
+ * /user/{id}:
+ *  get:
+ *      tags:
+ *      - Users
+ *      description: Trae todos los usuarios del sistema
+ *      parameters:
+ *         - in: header
+ *           name: token
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *         - in: path
+ *           name: id
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: todos los usurios del sistema
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/User"
+ */
 
 router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result
@@ -26,9 +80,38 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
             codeError: 01,
         });
     }
-});
+}); 
 
-router.post('/user', auth.authUser, async (req, res)=> {//autenticar campos de usuarios
+/**
+ * @swagger
+ * /user:
+ *  post:
+ *      tags:
+ *      - Users
+ *      description: Ingresa usuarios del sistema
+ *      parameters:
+ *         - in: header
+ *           name: token
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *         - in: body
+ *           description: informaicon del usuario del usuario
+ *           schema:
+ *             $ref: "#/components/schemas/User"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: Usuario creado
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/User"
+ */
+
+router.post('/user', auth.authUser, async (req, res)=> {
+    //autenticar campos de usuarios
     /* Solo se pueden crear usuarios clientes */
     const user = req.body;
     user.idRole = 2;
@@ -43,12 +126,71 @@ router.post('/user', auth.authUser, async (req, res)=> {//autenticar campos de u
     }    
 });
 
+
+/**
+ * @swagger
+ * /user/:id:
+ *  put:
+ *      tags:
+ *      - Users
+ *      description: Actualiza usuarios del sistema
+ *      parameters:
+ *         - in: header
+ *           name: token
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *         - in: body
+ *           description: informaicion del usuario del usuario
+ *           schema:
+ *             $ref: "#/components/schemas/User"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: Usuario actualizado
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/User"
+ */
+
 router.put('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // leer
     //Code here
 });
 
-router.patch('/user/:id', auth.auth, auth.authRol, async (req, res)=> { //comprobar que los campos esten o arrojar errores, poner por defecto los valores de usuario
+/**
+ * @swagger
+ * /user/:id:
+ *  patch:
+ *      tags:
+ *      - Users
+ *      description: Actualiza usuarios del sistema
+ *      parameters:
+ *         - in: header
+ *           name: token
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *         - in: body
+ *           description: informaicion del usuario del usuario
+ *           schema:
+ *             $ref: "#/components/schemas/User"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: Usuario actualizado
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/User"
+ */
+
+router.patch('/user/:id', auth.auth, auth.authRol, async (req, res)=> { 
+    //comprobar que los campos esten o arrojar errores, poner por defecto los valores de usuario
     //refactor solo poner en el query las propiedades que estan en el objeto
+
     const user = req.body;
     let query
     if (req.isAdmin) {
@@ -67,6 +209,30 @@ router.patch('/user/:id', auth.auth, auth.authRol, async (req, res)=> { //compro
     res.json(result);
 });
 
+/**
+ * @swagger
+ * /user/:id:
+ *  delete:
+ *      tags:
+ *      - Users
+ *      description: Elimina usuarios del sistema
+ *      parameters:
+ *         - in: header
+ *           name: token
+ *           description: Identificador unico del usuario
+ *           schema:
+ *             type: string
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: Usuario Eliminado
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/User"
+ */
+
 router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
@@ -82,24 +248,44 @@ router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
 
 module.exports = router;
 
-// se de poner
 /**
  * @swagger
  * components:
- *  schemas:
- *  User:
- *  type: object
- *  properties:
- *      id: 
- *          type: string
- *          description: id del usuario
- *          example: 1
+ *   schemas:
+ *      User:
+ *        type: object
+ *        properties:  
+ *          id: 
+ *              type: integer
+ *              description: id del usuario
+ *              example: 1  
+ *          nombreUsuaurio: 
+ *              type: string
+ *              description: nombre del usuario
+ *              example: 'Wvanegas'
+ *          nombreCompleto: 
+ *              type: string
+ *              description: nombre completo del usuario
+ *              example: 'Walter vanegas'
+ *          email: 
+ *              type: string
+ *              description: email del usuario
+ *              example: 'Waltervanegas@gmail.com'
+ *          telefono: 
+ *              type: string
+ *              description: telefono del usuario
+ *              example: '3007002250'
+ *          direccion: 
+ *              type: string
+ *              description: direccion del usuario
+ *              example: 'N/A'
+ *          contrasena: 
+ *              type: string
+ *              description: contraseña del usuario
+ *              example: '1234'
+ *          idRole: 
+ *              type: integer
+ *              description: rol del usuario
+ *              example: '2'
  * 
- *      nombreUsuario: 
- *          type: string
- *          description: nombre del usuario
- *          example: 'Wvanegas'
- *      nombreCompleto:
- *          type: string
- *          description: nombre completo
- */
+*/

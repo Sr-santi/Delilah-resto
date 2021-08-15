@@ -1,5 +1,5 @@
 module.exports.swaggerDefinition = {
-    swagger: '2.0',
+    openapi: '3.0.0',
     info: {
         title: 'Deliah Resto API',
         version: '1.0.0',
@@ -9,12 +9,28 @@ module.exports.swaggerDefinition = {
             url: ''
         }
     },
-    schemas: [
+    servers: [
         {
-            url: 'http://localhost:3000/api',
+            url: 'http://localhost:3000/',
+            description: 'develop'
         },
         {
-            url: 'https://delahiaresto.com/api',
+            url: 'https://delahiaresto.com/',
+            description: 'production'
         }
+    ],
+    components: {
+        securitySchemes: {
+            bearerAuth: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT"
+            }
+        }
+    },
+    security: [
+        {
+            bearerAuth: []
+        }        
     ]
 }
