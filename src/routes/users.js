@@ -4,7 +4,7 @@ const actions = require('../database/actions');
 
 const router = express.Router();
 
-router.get('/users', auth.auth, auth.authRol, async (req, res)=> { //hacer el middleware para autenticar rol ; usamos jwt para obtener el json descrifrado
+router.get('/users', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
         result = await actions.Select('SELECT * FROM usuarios', {});
@@ -28,9 +28,8 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     }
 });
 
-router.post('/user', auth.authUser, async (req, res)=> {
+router.post('/user', auth.authUser, async (req, res)=> {//autenticar campos de usuarios
     /* Solo se pueden crear usuarios clientes */
-    //permitir al Admin crear Admins
     const user = req.body;
     user.idRole = 2;
     let result;
@@ -48,7 +47,8 @@ router.put('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // leer
     //Code here
 });
 
-router.patch('/user/:id', auth.auth, auth.authRol, auth.authUser, async (req, res)=> { //comprobar que los campos esten o arrojar errores , error para usuario no encontrado
+router.patch('/user/:id', auth.auth, auth.authRol, async (req, res)=> { //comprobar que los campos esten o arrojar errores, poner por defecto los valores de usuario
+    //refactor solo poner en el query las propiedades que estan en el objeto
     const user = req.body;
     let query
     if (req.isAdmin) {
@@ -67,7 +67,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, auth.authUser, async (req, re
     res.json(result);
 });
 
-router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // error para usuario no encontrado
+router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
         result = await actions.Delete('DELETE FROM usuarios WHERE id = :id', { id: req.params.id });
@@ -81,3 +81,25 @@ router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // erro
 });
 
 module.exports = router;
+
+// se de poner
+/**
+ * @swagger
+ * components:
+ *  schemas:
+ *  User:
+ *  type: object
+ *  properties:
+ *      id: 
+ *          type: string
+ *          description: id del usuario
+ *          example: 1
+ * 
+ *      nombreUsuario: 
+ *          type: string
+ *          description: nombre del usuario
+ *          example: 'Wvanegas'
+ *      nombreCompleto:
+ *          type: string
+ *          description: nombre completo
+ */
