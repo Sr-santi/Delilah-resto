@@ -187,26 +187,27 @@ router.put('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // leer
  *                           $ref: "#/components/schemas/User"
  */
 
-router.patch('/user/:id', auth.auth, auth.authRol, async (req, res)=> { 
+router.patch('/user/:id', auth.auth, auth.authRol, auth.authUserObject, async (req, res)=> { 
     //comprobar que los campos esten o arrojar errores, poner por defecto los valores de usuario
     //refactor solo poner en el query las propiedades que estan en el objeto
+    // poner los status
 
     const user = req.body;
-    let query
+    let query_options = req.query.join(',');
+    let query;
     if (req.isAdmin) {
-        query = `UPDATE usuarios SET nombreCompleto = :nombreCompleto, email = :email, telefono = :telefono, direccion = :direccion, contrasena = :contrasena, idRole = :idRole
-        WHERE id = ${req.params.id}`
+        query = `UPDATE usuarios SET ${query_options} WHERE id = ${req.params.id}`;
     } else {
         if (req.userId !== req.params.id) {
-            res.json({
+            res.status(400).json({
                 error: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
                 codeError: 01,
             })
         }
-        query = `UPDATE usuarios SET nombreCompleto = :nombreCompleto, email = :email, telefono = :telefono, direccion = :direccion, contrasena = :contrasena WHERE id = ${req.params.id}`
+        query = `UPDATE usuarios SET ${query_options} WHERE id = ${req.params.id}`;
     }
     const result = await actions.Update(query, user);
-    res.json(result);
+    res.status(200).json(result);
 });
 
 /**

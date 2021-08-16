@@ -2,11 +2,19 @@ const jwt = require('jsonwebtoken');
 const actions = require('../database/actions');
 
 const firma = 'Firma_para_proyecto'; //manejo seguro ; preguntar sobre practica seguro
+const UserQueryOptions = {
+    nombreCompleto: "nombreCompleto = :nombreCompleto",
+    email: "email = :email",
+    telefono: "telefono = :telefono",
+    direccion: "direccion = :direccion",
+    contrasena: "contrasena = :contrasena",
+    idRole: "idRole = :idRole"
+}
 
 function validateEmail(email){
     let result = false;
     if(/^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i.test(email)){
-        result = true
+        result = true;
     }
     return result
 }
@@ -43,8 +51,8 @@ module.exports.authRol = async (req,res,next) => {
         const userName = req.user.userName;
         const result = await actions.Select('SELECT * FROM usuarios WHERE nombreUsuaurio = :userName', { userName: userName });
         const isAdmin = result[0].idRole === 1 ? true:false;
-        req.isAdmin = isAdmin
-        req.userId = result[0].id
+        req.isAdmin = isAdmin;
+        req.userId = result[0].id;
         return next();
 
     } catch (error) {
@@ -74,12 +82,37 @@ module.exports.authUser = (req,res,next) => {
 
 //completar
 // autenticar objeto
-module.exports.authObject = (req,res,next) => {
+module.exports.authUserObject = (req,res,next) => {
     try {
-        
+        const user = req.body;
+        const Admin = req.isAdmin
+        // campos especiales
+        if ('email' in user){
+            if (!validateEmail(user.email)){throw "usuario.email no es una dirección de correo valida";}
+        }
+        if ('telefono' in user){
+            if (!validateNumber(user.telefono)){throw "usuario.telefono no es valido";}
+        }
+        if (!Admin){
+            delete user['idRole']
+        }
+
+        const user_keys = Object.keys(user);
+        let queries= []
+        if (user_keys>0){
+            user_keys.forEach(property => {
+                if (property in UserQueryOptions){
+                    queries.push(UserQueryOptions[property])
+                }
+            })
+            if(queries.length === 0){throw "No hay parametros validos en la solicitud";}
+            req.query = queries
+        }else {
+            throw "No hay parametros validos en la solicitud";
+        }
     } catch (error) {
         res.status(422).json({
-            error: `Unprocessable Entity`,
+            error: `Unprocessable Entity , ${error}`,
             codeError: 04,
         })
     }
