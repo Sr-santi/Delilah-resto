@@ -10,18 +10,21 @@ const router = express.Router();
  *  get:
  *      tags:
  *      - Users
- *      description: Trae todos los usuarios del sistema
+ *      summary: "Obtener los usuarios de la BD"
+ *      description: "Trae todos los usuarios de la base de datos para el Admin y trae la información de el usuario cuando la petición la realiza un usuario sin permisos de admin"
  *      parameters:
- *         - in: header
- *           name: authorization
- *           description: Identificador unico del usuario
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
  *           schema:
- *             type: string
+ *             type: "string"
  *      produces:
  *         - application/json
  *      responses:
  *          200:
- *              description: todos los usurios del sistema
+ *              description: "todos los usurios del sistema"
  *              content:
  *                  application/json:   
  *                      schema:
@@ -46,27 +49,38 @@ router.get('/users', auth.auth, auth.authRol, async (req, res)=> {
  *  get:
  *      tags:
  *      - Users
- *      description: Trae todos los usuarios del sistema
+ *      summary: "Obtener usuario por id"
+ *      description: "Trae un usuario dado un id, para el admin no hay restricciones, para el usuario no es posible usar este endpoint"
  *      parameters:
- *         - in: header
- *           name: token
- *           description: Identificador unico del usuario
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
  *           schema:
- *             type: string
+ *             type: "string"
  *         - in: path
- *           name: id
- *           description: Identificador unico del usuario
+ *           name: "id"
+ *           description: "Identificador unico del usuario"
+ *           required: true
+ *           example: 1
  *           schema:
- *             type: string
+ *             type: "string"
  *      produces:
  *         - application/json
  *      responses:
  *          200:
- *              description: todos los usurios del sistema
+ *              description: "usuario buscado por id en la BD"
  *              content:
  *                  application/json:   
  *                      schema:
  *                           $ref: "#/components/schemas/User"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
  */
 
 router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
@@ -76,7 +90,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
         res.json(result);
     }else {
         res.status(400).json({
-            error: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             codeError: 01,
         });
     }
@@ -88,26 +102,31 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
  *  post:
  *      tags:
  *      - Users
- *      description: Ingresa usuarios del sistema
+ *      description: "Ingresa usuarios del sistema"
  *      parameters:
- *         - in: header
- *           name: token
- *           description: Identificador unico del usuario
- *           schema:
- *             type: string
  *         - in: body
- *           description: informaicon del usuario del usuario
+ *           description: "información del usuario del usuario"
  *           schema:
  *             $ref: "#/components/schemas/User"
  *      produces:
  *         - application/json
  *      responses:
  *          200:
- *              description: Usuario creado
+ *              description: "Usuario creado"
  *              content:
  *                  application/json:   
  *                      schema:
- *                           $ref: "#/components/schemas/User"
+ *                           type: object
+ *                           properties:
+ *                              messague:
+ *                                  type: string
+ *                                  description: "usuario creado exitosamente"
+ *          500:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
  */
 
 router.post('/user', auth.authUser, async (req, res)=> {
@@ -120,43 +139,15 @@ router.post('/user', auth.authUser, async (req, res)=> {
     result = await actions.Insert(`INSERT INTO usuarios (nombreUsuaurio, nombreCompleto, email, telefono, direccion, contrasena, idRole) 
     VALUES (:nombreUsuaurio, :nombreCompleto, :email, :telefono, :direccion, :contrasena, :idRole)`, user);
     if(result.error) {
-        res.status(500).json(result.message);
+        res.status(500).json({
+            messague: "Error de escritura en la BD o ingreso de datos invalido",
+            codeError: 05,
+        });
     } else {
-        res.json(result);
+        res.status(200).json({
+            messague: "Usuario creado con exito"
+        });
     }    
-});
-
-
-/**
- * @swagger
- * /user/:id:
- *  put:
- *      tags:
- *      - Users
- *      description: Actualiza usuarios del sistema
- *      parameters:
- *         - in: header
- *           name: token
- *           description: Identificador unico del usuario
- *           schema:
- *             type: string
- *         - in: body
- *           description: informaicion del usuario del usuario
- *           schema:
- *             $ref: "#/components/schemas/User"
- *      produces:
- *         - application/json
- *      responses:
- *          200:
- *              description: Usuario actualizado
- *              content:
- *                  application/json:   
- *                      schema:
- *                           $ref: "#/components/schemas/User"
- */
-
-router.put('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // leer
-    //Code here
 });
 
 /**
@@ -165,22 +156,32 @@ router.put('/user/:id', auth.auth, auth.authRol, async (req, res)=> { // leer
  *  patch:
  *      tags:
  *      - Users
- *      description: Actualiza usuarios del sistema
+ *      description: "Actualiza usuarios del sistema"
  *      parameters:
- *         - in: header
- *           name: token
- *           description: Identificador unico del usuario
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
  *           schema:
- *             type: string
+ *             type: "string"
+ *         - in: path
+ *           name: "id"
+ *           description: "Identificador unico del usuario"
+ *           required: true
+ *           example: 1
+ *           schema:
+ *             type: "string"
  *         - in: body
- *           description: informaicion del usuario del usuario
+ *           description: "Objeto con campos a modificar del usuario, se debe de enviar por lo menos uno para ser valida la petición"
+ *           required: true
  *           schema:
  *             $ref: "#/components/schemas/User"
  *      produces:
  *         - application/json
  *      responses:
  *          200:
- *              description: Usuario actualizado
+ *              description: "Usuario actualizado"
  *              content:
  *                  application/json:   
  *                      schema:
@@ -192,15 +193,16 @@ router.patch('/user/:id', auth.auth, auth.authRol, auth.authUserObject, async (r
     //refactor solo poner en el query las propiedades que estan en el objeto
     // poner los status
 
+    console.log('ey')
     const user = req.body;
-    let query_options = req.query.join(',');
+    let query_options = req.queries;
     let query;
     if (req.isAdmin) {
         query = `UPDATE usuarios SET ${query_options} WHERE id = ${req.params.id}`;
     } else {
         if (req.userId !== req.params.id) {
             res.status(400).json({
-                error: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+                messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
                 codeError: 01,
             })
         }
@@ -216,18 +218,24 @@ router.patch('/user/:id', auth.auth, auth.authRol, auth.authUserObject, async (r
  *  delete:
  *      tags:
  *      - Users
- *      description: Elimina usuarios del sistema
+ *      description: "Elimina usuarios del sistema"
  *      parameters:
- *         - in: header
- *           name: token
- *           description: Identificador unico del usuario
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Identificador unico del usuario"
  *           schema:
- *             type: string
+ *             type: "string"
  *      produces:
  *         - application/json
  *      responses:
  *          200:
- *              description: Usuario Eliminado
+ *              description: "Usuario Eliminado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/User"
+ *          400:
+ *              description: "Usuario Eliminado"
  *              content:
  *                  application/json:   
  *                      schema:
@@ -238,7 +246,10 @@ router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
         result = await actions.Delete('DELETE FROM usuarios WHERE id = :id', { id: req.params.id });
-        res.json(result);
+        res.status(200).json({
+            description: "El usuario fue eliminado exitosamente",
+            content: result
+        });
     }else {
         res.status(400).json({
             error: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
@@ -254,39 +265,48 @@ module.exports = router;
  * components:
  *   schemas:
  *      User:
- *        type: object
+ *        type: "object"
  *        properties:  
  *          id: 
- *              type: integer
- *              description: id del usuario
+ *              type: "integer"
+ *              description: "id del usuario"
  *              example: 1  
  *          nombreUsuaurio: 
- *              type: string
- *              description: nombre del usuario
- *              example: 'Wvanegas'
+ *              type: "string"
+ *              description: "nombre del usuario"
+ *              example: 'Sr_rios'
  *          nombreCompleto: 
- *              type: string
- *              description: nombre completo del usuario
- *              example: 'Walter vanegas'
+ *              type: "string"
+ *              description: "nombre completo del usuario"
+ *              example: 'Santiago Ríos'
  *          email: 
  *              type: string
  *              description: email del usuario
- *              example: 'Waltervanegas@gmail.com'
+ *              example: 'santi@gmail.com'
  *          telefono: 
  *              type: string
  *              description: telefono del usuario
- *              example: '3007002250'
+ *              example: '+573216328822'
  *          direccion: 
  *              type: string
  *              description: direccion del usuario
- *              example: 'N/A'
+ *              example: 'Cra 40 #22 13'
  *          contrasena: 
  *              type: string
  *              description: contraseña del usuario
- *              example: '1234'
+ *              example: 'unaClave'
  *          idRole: 
  *              type: integer
- *              description: rol del usuario
+ *              description: rol del usuario, 1 es admin y 2 es usuario comun.
  *              example: '2'
+ *      Error:
+ *         type: object
+ *         properties:
+ *           messague:
+ *              type: string
+ *              description: "mensaje de error"
+ *           codeError:
+ *              type: integer
+ *              description: "codigo de error"
  * 
 */

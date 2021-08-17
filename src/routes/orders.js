@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
-<<<<<<< HEAD
 const auth = require('../security/auth');
-=======
 const actions = require('../database/actions');
->>>>>>> c0fdeddb5fa12e4816c3496478c9d55783604954
 
 router.get('/orders', auth.auth, async (req, res)=> { //hacer el middleware para autenticar rol
     //usuario solo ve sus ordenes

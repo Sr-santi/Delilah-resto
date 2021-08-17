@@ -65,6 +65,7 @@ module.exports.authRol = async (req,res,next) => {
 
 module.exports.authUser = (req,res,next) => {
     try {
+        //autenticar demas campos
         const user = req.body;
         const email =validateEmail(user.email);
         const number = validateNumber(user.telefono);
@@ -99,14 +100,15 @@ module.exports.authUserObject = (req,res,next) => {
 
         const user_keys = Object.keys(user);
         let queries= []
-        if (user_keys>0){
+        if (user_keys.length>0){
             user_keys.forEach(property => {
                 if (property in UserQueryOptions){
                     queries.push(UserQueryOptions[property])
                 }
             })
             if(queries.length === 0){throw "No hay parametros validos en la solicitud";}
-            req.query = queries
+            console.log("mis queries",queries)
+            req.queries = queries.join(', ')
         }else {
             throw "No hay parametros validos en la solicitud";
         }
