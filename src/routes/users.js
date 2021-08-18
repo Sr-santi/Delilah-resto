@@ -1,5 +1,6 @@
 const express = require('express');
 const auth = require('../security/auth');
+const authUser = require('../security/user_auth');
 const actions = require('../database/actions');
 
 const router = express.Router();
@@ -39,7 +40,7 @@ router.get('/users', auth.auth, auth.authRol, async (req, res)=> {
     } else {
         result = await actions.Select('SELECT * FROM usuarios WHERE nombreUsuaurio = :userName', { userName: req.user.userName });
     }
-    res.json(result)
+    res.status(200).json(result)
     
 });
 
@@ -89,9 +90,9 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
         result = await actions.Select('SELECT * FROM usuarios WHERE id = :id', { id: req.params.id });
         res.json(result);
     }else {
-        res.status(400).json({
+        res.status(403).json({
             messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-            codeError: 01,
+            codeError: 403,
         });
     }
 }); 
@@ -129,7 +130,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
  *                           $ref: "#/components/schemas/Error"
  */
 
-router.post('/user', auth.authUser, async (req, res)=> {
+router.post('/user', authUser.authUser, async (req, res)=> {
     //autenticar campos de usuarios
     /* Solo se pueden crear usuarios clientes */
     const user = req.body;
@@ -141,7 +142,7 @@ router.post('/user', auth.authUser, async (req, res)=> {
     if(result.error) {
         res.status(500).json({
             messague: "Error de escritura en la BD o ingreso de datos invalido",
-            codeError: 05,
+            codeError: 500,
         });
     } else {
         res.status(200).json({
@@ -181,19 +182,31 @@ router.post('/user', auth.authUser, async (req, res)=> {
  *         - application/json
  *      responses:
  *          200:
- *              description: "Usuario actualizado"
+ *              description: "Usuario creado"
  *              content:
  *                  application/json:   
  *                      schema:
- *                           $ref: "#/components/schemas/User"
+ *                           type: object
+ *                           properties:
+ *                              messague:
+ *                                  type: string
+ *                                  description: "usuario creado exitosamente"
+ *                              parameters:
+ *                                  type: object
+ *                                  description: "Campos con valores actualizados validos"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
  */
 
-router.patch('/user/:id', auth.auth, auth.authRol, auth.authUserObject, async (req, res)=> { 
+router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, async (req, res)=> { 
     //comprobar que los campos esten o arrojar errores, poner por defecto los valores de usuario
     //refactor solo poner en el query las propiedades que estan en el objeto
     // poner los status
 
-    console.log('ey')
     const user = req.body;
     let query_options = req.queries;
     let query;
@@ -201,15 +214,18 @@ router.patch('/user/:id', auth.auth, auth.authRol, auth.authUserObject, async (r
         query = `UPDATE usuarios SET ${query_options} WHERE id = ${req.params.id}`;
     } else {
         if (req.userId !== req.params.id) {
-            res.status(400).json({
+            res.status(403).json({
                 messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-                codeError: 01,
+                codeError: 403,
             })
         }
         query = `UPDATE usuarios SET ${query_options} WHERE id = ${req.params.id}`;
     }
     const result = await actions.Update(query, user);
-    res.status(200).json(result);
+    res.status(200).json({
+        messague: `Se actualizo el usuario con exito`,
+        parameters: user
+    });
 });
 
 /**
@@ -229,31 +245,45 @@ router.patch('/user/:id', auth.auth, auth.authRol, auth.authUserObject, async (r
  *         - application/json
  *      responses:
  *          200:
- *              description: "Usuario Eliminado"
+ *              description: "Usuario creado"
  *              content:
  *                  application/json:   
  *                      schema:
- *                           $ref: "#/components/schemas/User"
+ *                           type: object
+ *                           properties:
+ *                              messague:
+ *                                  type: string
+ *                                  description: "usuario creado exitosamente"
+ *                              id_user:
+ *                                  type: number
+ *                                  description: "id de usuario eliminado"
  *          400:
- *              description: "Usuario Eliminado"
+ *              description: "acceso denegado"
  *              content:
  *                  application/json:   
  *                      schema:
- *                           $ref: "#/components/schemas/User"
+ *                           $ref: "#/components/schemas/Error"
  */
 
 router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
+        exist = await actions.Select('SELECT * FROM usuarios WHERE id = :id', { id: req.params.id });
+        if (exist.length === 0) {
+            res.status(404).json({
+                messague: `El usuario con el id ${req.params.id} no existe`,
+                codeError: 404,
+            })
+        }
         result = await actions.Delete('DELETE FROM usuarios WHERE id = :id', { id: req.params.id });
         res.status(200).json({
             description: "El usuario fue eliminado exitosamente",
-            content: result
+            id_user: req.params.id
         });
     }else {
-        res.status(400).json({
-            error: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-            codeError: 01,
+        res.status(403).json({
+            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            codeError: 403,
         });
     }
 });
