@@ -7,6 +7,7 @@ const swaggerUI = require('swagger-ui-express');
 
 const userRouter = require('./routes/users');
 const orderRouter = require('./routes/orders');
+const productRouter = require('./routes/products')
 const authRouter = require('./routes/auth');
 
 const port = 3000;
@@ -24,6 +25,7 @@ server.use(helmet());
 server.use('/docs/swagger', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 server.use('/', userRouter);
 server.use('/', orderRouter);
+server.use('/', productRouter);
 server.use('/', authRouter);
 
 server.get('/', (req, res)=> {
