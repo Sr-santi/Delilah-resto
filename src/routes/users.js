@@ -91,8 +91,9 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
         res.json(result);
     }else {
         res.status(403).json({
+            success: false,
             messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-            codeError: 403,
+            data: {Admin: req.isAdmin, id: req.params.id}
         });
     }
 }); 
@@ -106,7 +107,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
  *      description: "Ingresa usuarios del sistema"
  *      parameters:
  *         - in: body
- *           description: "información del usuario del usuario"
+ *           description: "información del usuario"
  *           schema:
  *             $ref: "#/components/schemas/User"
  *      produces:
@@ -141,8 +142,9 @@ router.post('/user', authUser.authUser, async (req, res)=> {
     VALUES (:nombreUsuaurio, :nombreCompleto, :email, :telefono, :direccion, :contrasena, :idRole)`, user);
     if(result.error) {
         res.status(500).json({
+            success: false,
             messague: "Error de escritura en la BD o ingreso de datos invalido",
-            codeError: 500,
+            data: req.body
         });
     } else {
         res.status(200).json({
@@ -153,7 +155,7 @@ router.post('/user', authUser.authUser, async (req, res)=> {
 
 /**
  * @swagger
- * /user/:id:
+ * /user/{id}:
  *  patch:
  *      tags:
  *      - Users
@@ -215,8 +217,9 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
     } else {
         if (req.userId !== req.params.id) {
             res.status(403).json({
+                success: false,
                 messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-                codeError: 403,
+                data: {Admin: req.isAdmin, id: req.params.id}
             })
         }
         query = `UPDATE usuarios SET ${query_options} WHERE id = ${req.params.id}`;
@@ -230,7 +233,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
 
 /**
  * @swagger
- * /user/:id:
+ * /user/{id}:
  *  delete:
  *      tags:
  *      - Users
@@ -238,7 +241,16 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
  *      parameters:
  *         - in: "header"
  *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
+ *           schema:
+ *             type: "string"
+ *         - in: path
+ *           name: "id"
  *           description: "Identificador unico del usuario"
+ *           required: true
+ *           example: 1
  *           schema:
  *             type: "string"
  *      produces:
@@ -266,13 +278,14 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
  */
 
 router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
-    let result
+    let result;
     if (req.isAdmin) {
         exist = await actions.Select('SELECT * FROM usuarios WHERE id = :id', { id: req.params.id });
         if (exist.length === 0) {
             res.status(404).json({
+                success: false,
                 messague: `El usuario con el id ${req.params.id} no existe`,
-                codeError: 404,
+                data: {id: req.params.id}
             })
         }
         result = await actions.Delete('DELETE FROM usuarios WHERE id = :id', { id: req.params.id });
@@ -282,8 +295,9 @@ router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
         });
     }else {
         res.status(403).json({
+            success: false,
             messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-            codeError: 403,
+            data: {Admin: req.isAdmin, id: req.params.id}
         });
     }
 });
@@ -332,11 +346,15 @@ module.exports = router;
  *      Error:
  *         type: object
  *         properties:
+ *           success:
+ *              type: boolean
+ *              description: "estado binario de la petición"
+ *              example: false
  *           messague:
  *              type: string
  *              description: "mensaje de error"
- *           codeError:
- *              type: integer
- *              description: "codigo de error"
+ *           data:
+ *              type: object
+ *              description: "datos que ocasionan el fallo"
  * 
 */
