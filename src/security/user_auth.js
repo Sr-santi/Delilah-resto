@@ -45,8 +45,9 @@ module.exports.authUser = (req,res,next) => {
 
     } catch (error) {
         res.status(422).json({
-            error: `campo no valido, ${error}`,
-            codeError: 422
+            success: false,
+            messague: `campo no valido, ${error}`,
+            data: req.body
         });
     }
 }
@@ -85,8 +86,9 @@ module.exports.authUserObject = (req,res,next) => {
         }
     } catch (error) {
         res.status(422).json({
-            error: `Unprocessable Entity , ${error}`,
-            codeError: 422,
+            success: false,
+            messague: `Unprocessable Entity , ${error}`,
+            data: req.body
         })
     }
 }

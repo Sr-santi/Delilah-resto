@@ -88,7 +88,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result
     if (req.isAdmin) {
         result = await actions.Select('SELECT * FROM usuarios WHERE id = :id', { id: req.params.id });
-        res.json(result);
+        res.status(200).json(result);
     }else {
         res.status(403).json({
             success: false,
@@ -104,6 +104,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
  *  post:
  *      tags:
  *      - Users
+ *      summary: "Agrega usuarios en la BD"
  *      description: "Ingresa usuarios del sistema"
  *      parameters:
  *         - in: body
@@ -159,6 +160,7 @@ router.post('/user', authUser.authUser, async (req, res)=> {
  *  patch:
  *      tags:
  *      - Users
+ *      summary: "Modifica los usuarios de la BD"
  *      description: "Actualiza usuarios del sistema"
  *      parameters:
  *         - in: "header"
@@ -237,6 +239,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
  *  delete:
  *      tags:
  *      - Users
+ *      summary: "Elimina usuarios en la BD"
  *      description: "Elimina usuarios del sistema"
  *      parameters:
  *         - in: "header"
@@ -257,7 +260,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
  *         - application/json
  *      responses:
  *          200:
- *              description: "Usuario creado"
+ *              description: "Usuario Eliminado"
  *              content:
  *                  application/json:   
  *                      schema:
@@ -265,7 +268,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
  *                           properties:
  *                              messague:
  *                                  type: string
- *                                  description: "usuario creado exitosamente"
+ *                                  description: "usuario eliminado exitosamente"
  *                              id_user:
  *                                  type: number
  *                                  description: "id de usuario eliminado"
@@ -290,7 +293,7 @@ router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
         }
         result = await actions.Delete('DELETE FROM usuarios WHERE id = :id', { id: req.params.id });
         res.status(200).json({
-            description: "El usuario fue eliminado exitosamente",
+            messague: "El usuario fue eliminado exitosamente",
             id_user: req.params.id
         });
     }else {

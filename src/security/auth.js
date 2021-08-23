@@ -17,8 +17,9 @@ module.exports.auth = (req, res, next) => {
        }
     } catch (error) {
         res.status(403).json({
-            error: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
-            codeError: 403,
+            success: false,
+            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            data: {token: 'No valido'}
         });
     }
 };
@@ -34,8 +35,9 @@ module.exports.authRol = async (req,res,next) => {
 
     } catch (error) {
         res.status(422).json({
-            error: 'El usuario no tiene un rol definido',
-            codeError: 422
+            success: false,
+            messague: 'El usuario no tiene un rol definido',
+            data: {token: 'No valido'}
         })
     }
 };

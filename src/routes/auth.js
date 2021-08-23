@@ -11,6 +11,7 @@ const router = express.Router();
  *  post:
  *      tags:
  *      - Login
+ *      summary: "Generar Token de acceso"
  *      description: "Genera el Token de acceso"
  *      parameters:
  *         - in: body
