@@ -291,7 +291,7 @@ router.patch('/product/:id', auth.auth, auth.authRol, authProduct.authProductObj
  *                           $ref: "#/components/schemas/Error"
  */
 
-router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
+router.delete('/product/:id', auth.auth, auth.authRol, async (req, res)=> {
     let result;
     if (req.isAdmin) {
         exist = await actions.Select('SELECT * FROM producto WHERE id = :id', { id: req.params.id });
