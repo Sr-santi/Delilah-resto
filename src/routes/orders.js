@@ -6,8 +6,6 @@ const actions = require('../database/actions');
 const router = express.Router();
 
 router.get('/orders', auth.auth, auth.authRol, async (req, res)=> {
-    //usuario solo ve sus ordenes
-    //admin todas las ordenes
     const Admin = req.isAdmin;
     let query;
 
@@ -21,7 +19,6 @@ router.get('/orders', auth.auth, auth.authRol, async (req, res)=> {
 });
 
 router.get('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
-    //admin todas las ordenes
     const Admin = req.isAdmin;
     if(Admin){
         const result = await actions.Select('SELECT * FROM ordenes WHERE id = :id', {id: req.params.id});
@@ -78,14 +75,49 @@ router.post('/order', auth.auth, auth.authRol, authOrder.authOrder, async (req, 
     }    
 });
 
-router.put('/order/:id', (req, res)=> {
-    //Code here
-    //solo cambiar el estado
+router.put('/order/:id', auth.auth, auth.authRol, authOrder.authOrderStatus, async (req, res)=> {
+    const userStatus = req.body;
+    let query;
+    if (req.isAdmin) {
+        query = `UPDATE ordenes SET estado =:estado WHERE id = ${req.params.id}`;
+    } else {
+        res.status(403).json({
+            success: false,
+            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            data: {Admin: req.isAdmin}
+        });
+    }
+    const result = await actions.Update(query, userStatus);
+    res.status(200).json({
+        messague: `Se actualizo la orden con exito`,
+        parameters: userStatus
+    });
 });
 
-router.delete('/order/:id', (req, res)=> {
-    //Code here
+router.delete('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
     // delete en detallesordenes
+    let result;
+    if (req.isAdmin) {
+        exist = await actions.Select('SELECT * FROM ordenes WHERE id = :id', { id: req.params.id });
+        if (exist.length === 0) {
+            res.status(404).json({
+                success: false,
+                messague: `El producto con el id ${req.params.id} no existe`,
+                data: {id: req.params.id}
+            })
+        }
+        result = await actions.Delete('DELETE FROM ordenes WHERE id = :id', { id: req.params.id });
+        res.status(200).json({
+            description: "la orden fue eliminada exitosamente",
+            id_product: req.params.id
+        });
+    }else {
+        res.status(403).json({
+            success: false,
+            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            data: {Admin: req.isAdmin, id: req.params.id}
+        });
+    }
 });
 
 module.exports = router;
@@ -104,7 +136,7 @@ module.exports = router;
  *          nombre: 
  *              type: string
  *              description: nombre formateado de la orden
- *              example: '2x hamburguesa 4x perro caliente'
+ *              example: '2x hamburguesa ,4x perro caliente'
  *          hora: 
  *              type: string
  *              description: hora de solicitud de la orden
