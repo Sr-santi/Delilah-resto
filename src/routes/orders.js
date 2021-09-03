@@ -1,5 +1,6 @@
 const express = require('express');
 const auth = require('../security/auth');
+const authOrder = require('../security/order_auth');
 const actions = require('../database/actions');
 
 const router = express.Router();
@@ -21,6 +22,7 @@ router.get('/orders', auth.auth, auth.authRol, async (req, res)=> {
 
 router.get('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
     //admin todas las ordenes
+    const Admin = req.isAdmin;
     if(Admin){
         const result = await actions.Select('SELECT * FROM ordenes WHERE id = :id', {id: req.params.id});
         res.status(200).json(result);
@@ -33,15 +35,11 @@ router.get('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
     }
 });
 
-router.post('/order', auth.auth, async (req, res)=> {
-    // cambiar en un middleware
-    // usuario = del usuario
-    // Admin IdUser = cualquiera
+router.post('/order', auth.auth, auth.authRol, authOrder.authOrder, async (req, res)=> {
     const reqComplete = req.body;
 
-    //middleware
-    const orderInfo = reqComplete.order; //comprobar
-    const detallesOrderInfo = reqComplete.detalleOrder //comprobar
+    const orderInfo = reqComplete.order;
+    const detallesOrderInfo = reqComplete.detalleOrder
 
     const resultOrderInsert = await actions.Insert(`INSERT INTO ordenes  
     (hora, tipoPago, IdUser, estado) 
@@ -51,29 +49,32 @@ router.post('/order', auth.auth, async (req, res)=> {
     
     for (const detalleOrderInfo of detallesOrderInfo) {
         await actions.Insert(`INSERT INTO detallesordenes  
-        (idOrden, idProducto, cant) 
+        (idOrden, idProducto, cantidad) 
         VALUES (:idOrden, :idProducto, :cant)`, { idOrden, ...detalleOrderInfo});
     }
 
     // completar entrada en la base de datos
     const resultQueryName = await actions.Select(`
-    SELECT SUM(p.valor * do.cant) as total,
-    GROUP_CONCAT(do.cant, "x ", p.nombre, " ") as name
-    FROM detallesordenes do
-    INNER JOIN producto p ON (p.id = do.idProducto)
+    SELECT SUM(p.valor * do.cantidad) as total,
+    GROUP_CONCAT(do.cantidad, "x ", p.nombre, " ") as name
+    FROM detallesordenes as do
+    INNER JOIN producto as p ON (p.id = do.idProducto)
     WHERE do.idOrden = :idOrden`, { idOrden });
+    console.log("mi total y nombre",resultQueryName)
 
     const resultOrderUpdate = await actions.Update(`UPDATE ordenes 
     SET nombre = :nombre, total = :total WHERE id = :idOrden`, { idOrden, nombre: resultQueryName[0].name, total: resultQueryName[0].total });
 
+    const result = await actions.Select(`SELECT * FROM ordenes WHERE id= ${idOrden}`)
+
     if(resultOrderUpdate.error) {
         res.status(500).json({
             success: false,
-            messague: `Error de escritura en la BD o ingreso de datos invalido, ${result.message}`,
+            messague: `Error de escritura en la BD o ingreso de datos invalido, ${resultOrderUpdate.message}`,
             data: req.body
         });
     } else {
-        res.status(200).json(resultOrderUpdate);
+        res.status(200).json(result);
     }    
 });
 
@@ -84,6 +85,7 @@ router.put('/order/:id', (req, res)=> {
 
 router.delete('/order/:id', (req, res)=> {
     //Code here
+    // delete en detallesordenes
 });
 
 module.exports = router;
