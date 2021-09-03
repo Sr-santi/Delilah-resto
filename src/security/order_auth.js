@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken');
 const actions = require('../database/actions');
 
+const validStatus = [1,2,3,4,5,6];
+
+
 const OrderQueryOptions = {
     tipoPago: "",
     IdUser: "",
@@ -29,12 +32,15 @@ function validateDetailObject(DetailObject){
     return equalStruct
 }
 
-module.exports.authOrder = (req,res,next) => {
+module.exports.authOrder = async (req,res,next) => {
     try {
         let order = req.body["order"]
         let detailOrder = req.body["detalleOrder"]
         let validDetailOrder = []
         if (!validateOrderObject(order)){throw `No ingreso todos los campos validos en la propiedad order, propiedades requeridas ${Object.keys(OrderQueryOptions)}`}
+        if (!(order.tipoPago === 1 || order.tipoPago === 0)){throw `Tipo de pago debe ser 0 o 1 , 0 == efectivo , 1 == tarjeta de credito`}
+        if (!(validStatus.includes(order.estado))){throw `Estado de orden no valido, valores validos: ${validStatus}`}
+
         if(req.isAdmin === false){
             order["IdUser"] = req.userId
             console.log(req.userId)
@@ -44,6 +50,9 @@ module.exports.authOrder = (req,res,next) => {
         })
         if(validDetailOrder.length === 0){throw `No ingreso todos los campos validos en la propiedad detalleOrder, propiedades requeridas ${Object.keys(OrderDetailQueryOptions)}`}
         req.body["detalleOrder"]=validDetailOrder
+
+        product_exist = await actions.Select('SELECT * FROM producto WHERE id = :id', { id: validDetailOrder[0].idProducto });
+        if(product_exist.length === 0){throw `id de producto no valido, verifique que este producto exista en la base de datos`}
         return next();
 
     } catch (error) {
@@ -55,32 +64,34 @@ module.exports.authOrder = (req,res,next) => {
     }
 }
 
-module.exports.authProductObject = (req,res,next) => {
+module.exports.authOrderStatus = async (req,res,next) => {
     try {
-        const product = req.body;
-        let valid_user_params = {};
+        const userStatus = req.body;
+        let existOrder = true;
+        const validation = validStatus.includes(userStatus.estado)
+        if (!validation){throw `Body no valido, ingrese un estado valido dentro de las opciones ${validStatus}`;}
 
-        const product_keys = Object.keys(product);
-        let queries= [];
-        if (product_keys.length>0){
-            product_keys.forEach(property => {
-                if (property in ProductQueryOptions){
-                    queries.push(ProductQueryOptions[property]);
-                    valid_user_params[property] = product[property];
-                }
-            })
-            if(queries.length === 0){throw "No hay parametros validos en la solicitud";}
-            req.body = valid_user_params;
-            req.queries = queries.join(', ');
-            return next();
-        }else {
-            throw "No hay parametros validos en la solicitud";
+        exist = await actions.Select('SELECT * FROM ordenes WHERE id = :id', { id: req.params.id });
+        if (exist.length === 0) {
+            existOrder = false;
+            throw `no found`;
         }
+        return next()
+
     } catch (error) {
-        res.status(422).json({
-            success: false,
-            messague: `Unprocessable Entity , ${error}`,
-            data: req.body
-        })
+        if (existOrder){
+            res.status(422).json({
+                success: false,
+                messague: `Unprocessable Entity , ${error}`,
+                data: req.body
+            })
+        } else {
+            res.status(404).json({
+                success: false,
+                messague: `La orden con el id ${req.params.id} no existe`,
+                data: {id: req.params.id}
+            })
+        }
+        
     }
 }
