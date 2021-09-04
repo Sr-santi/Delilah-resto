@@ -5,6 +5,41 @@ const actions = require('../database/actions');
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * /orders:
+ *  get:
+ *      tags:
+ *      - Orders
+ *      summary: "Obtener las ordenes de la BD"
+ *      description: "Trae todas las ordenes de la base de datos para el Admin, y las ordenes de los usuarios"
+ *      parameters:
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
+ *           schema:
+ *             type: "string"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: "todos las ordenes del sistema"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                          type: "array"
+ *                          items:
+ *                              $ref: "#/components/schemas/Order"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
+ */
+
 router.get('/orders', auth.auth, auth.authRol, async (req, res)=> {
     const Admin = req.isAdmin;
     let query;
@@ -18,6 +53,46 @@ router.get('/orders', auth.auth, auth.authRol, async (req, res)=> {
     res.status(200).json(result);
 });
 
+/**
+ * @swagger
+ * /order/{id}:
+ *  get:
+ *      tags:
+ *      - Orders
+ *      summary: "Obtener orden por id"
+ *      description: "Trae una orden dada un id"
+ *      parameters:
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
+ *           schema:
+ *             type: "string"
+ *         - in: path
+ *           name: "id"
+ *           description: "Identificador unico de orden"
+ *           required: true
+ *           example: 1
+ *           schema:
+ *             type: "string"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: "Orden buscado por id en la BD"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Order"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
+ */
+
 router.get('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
     const Admin = req.isAdmin;
     if(Admin){
@@ -26,11 +101,58 @@ router.get('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
     } else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin, id: req.params.id}
         });
     }
 });
+
+/**
+ * @swagger
+ * /order:
+ *  post:
+ *      tags:
+ *      - Orders
+ *      summary: "Agregar ordenes a la BD"
+ *      description: "Ingresa ordenes al sistema, Admin crea ordenes para todos y el usuario solo puede crear ordenes personales"
+ *      parameters:
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
+ *           schema:
+ *             type: "string"
+ *         - in: body
+ *           description: "información de para crear la orden"
+ *           schema:
+ *             $ref: "#/components/schemas/Order-body"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: "Orden creada"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           type: object
+ *                           properties:
+ *                              message:
+ *                                  type: string
+ *                                  description: "Orden creada exitosamente"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
+ *          500:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
+ */
 
 router.post('/order', auth.auth, auth.authRol, authOrder.authOrder, async (req, res)=> {
     const reqComplete = req.body;
@@ -67,13 +189,71 @@ router.post('/order', auth.auth, auth.authRol, authOrder.authOrder, async (req, 
     if(resultOrderUpdate.error) {
         res.status(500).json({
             success: false,
-            messague: `Error de escritura en la BD o ingreso de datos invalido, ${resultOrderUpdate.message}`,
+            message: `Error de escritura en la BD o ingreso de datos invalido, ${resultOrderUpdate.message}`,
             data: req.body
         });
     } else {
-        res.status(200).json(result);
+        res.status(200).json({
+            message: "Orden creada con exito"
+        });
     }    
 });
+
+/**
+ * @swagger
+ * /order/{id}:
+ *  put:
+ *      tags:
+ *      - Orders
+ *      summary: "Editar ordenes en la BD"
+ *      description: "Actualiza el estado de la orden con los valores validos 1,2,3,4,5,6 || 1=Nuevo, 2=Comfirmado, 3=Preparando, 4=Enviado, 5=Cancelado, 6=Entregado"
+ *      parameters:
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
+ *           schema:
+ *             type: "string"
+ *         - in: path
+ *           name: "id"
+ *           description: "Identificador unico de orden"
+ *           required: true
+ *           example: 1
+ *           schema:
+ *             type: "string"
+ *         - in: body
+ *           description: "Objeto con el nuevo valor de estado"
+ *           required: true
+ *           schema:
+ *              type: object
+ *              properties:
+ *                  estado:
+ *                      type: number
+ *                      description: 2
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: "Producto creado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           type: object
+ *                           properties:
+ *                              message:
+ *                                  type: string
+ *                                  description: "producto creado exitosamente"
+ *                              parameters:
+ *                                  type: object
+ *                                  description: "Campos con valores actualizados validos"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
+ */
 
 router.put('/order/:id', auth.auth, auth.authRol, authOrder.authOrderStatus, async (req, res)=> {
     const userStatus = req.body;
@@ -83,38 +263,85 @@ router.put('/order/:id', auth.auth, auth.authRol, authOrder.authOrderStatus, asy
     } else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin}
         });
     }
     const result = await actions.Update(query, userStatus);
     res.status(200).json({
-        messague: `Se actualizo la orden con exito`,
+        message: `Se actualizo la orden con exito`,
         parameters: userStatus
     });
 });
 
+/**
+ * @swagger
+ * /order/{id}:
+ *  delete:
+ *      tags:
+ *      - Orders
+ *      summary: "Elimina ordenes en la BD"
+ *      description: "Elimina ordenes del sistema"
+ *      parameters:
+ *         - in: "header"
+ *           name: "authorization"
+ *           description: "Token identificador unico del usuario"
+ *           required: true
+ *           example: 'Bearer token'
+ *           schema:
+ *             type: "string"
+ *         - in: path
+ *           name: "id"
+ *           description: "Identificador unico de la orden"
+ *           required: true
+ *           example: 1
+ *           schema:
+ *             type: "string"
+ *      produces:
+ *         - application/json
+ *      responses:
+ *          200:
+ *              description: "orden Eliminada"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           type: object
+ *                           properties:
+ *                              message:
+ *                                  type: string
+ *                                  description: "Orden eliminada exitosamente"
+ *                              id_order:
+ *                                  type: number
+ *                                  description: "id de la orden eliminada"
+ *          400:
+ *              description: "acceso denegado"
+ *              content:
+ *                  application/json:   
+ *                      schema:
+ *                           $ref: "#/components/schemas/Error"
+ */
+
 router.delete('/order/:id', auth.auth, auth.authRol, async (req, res)=> {
-    // delete en detallesordenes
     let result;
     if (req.isAdmin) {
         exist = await actions.Select('SELECT * FROM ordenes WHERE id = :id', { id: req.params.id });
         if (exist.length === 0) {
             res.status(404).json({
                 success: false,
-                messague: `El producto con el id ${req.params.id} no existe`,
+                message: `El producto con el id ${req.params.id} no existe`,
                 data: {id: req.params.id}
             })
         }
+        result = await actions.Delete('DELETE FROM detallesordenes WHERE idOrden = :id', { id: req.params.id });
         result = await actions.Delete('DELETE FROM ordenes WHERE id = :id', { id: req.params.id });
         res.status(200).json({
-            description: "la orden fue eliminada exitosamente",
-            id_product: req.params.id
+            message: "la orden fue eliminada exitosamente",
+            id_order: req.params.id
         });
     }else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin, id: req.params.id}
         });
     }
