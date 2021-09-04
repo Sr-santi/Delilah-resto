@@ -67,22 +67,20 @@ module.exports.authOrder = async (req,res,next) => {
 module.exports.authOrderStatus = async (req,res,next) => {
     try {
         const userStatus = req.body;
-        let existOrder = true;
         const validation = validStatus.includes(userStatus.estado)
-        if (!validation){throw `Body no valido, ingrese un estado valido dentro de las opciones ${validStatus}`;}
+        if (!validation){throw {message: `Body no valido, ingrese un estado valido dentro de las opciones ${validStatus}`, exist: true};}
 
         exist = await actions.Select('SELECT * FROM ordenes WHERE id = :id', { id: req.params.id });
         if (exist.length === 0) {
-            existOrder = false;
-            throw `no found`;
+            throw {message: `no found`, exist: false};
         }
         return next()
 
     } catch (error) {
-        if (existOrder){
+        if (error.exist){
             res.status(422).json({
                 success: false,
-                messague: `Unprocessable Entity , ${error}`,
+                messague: `Unprocessable Entity , ${error.message}`,
                 data: req.body
             })
         } else {
