@@ -121,7 +121,7 @@ router.get('/product/:id', auth.auth, async (req, res)=> {
  *                      schema:
  *                           type: object
  *                           properties:
- *                              messague:
+ *                              message:
  *                                  type: string
  *                                  description: "producto creado exitosamente"
  *          400:
@@ -151,19 +151,19 @@ router.post('/product', auth.auth, auth.authRol, authProduct.authProduct, async 
     }else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin}
         })
     }
     if(result.error) {
         res.status(500).json({
             success: false,
-            messague: "Error de escritura en la BD o ingreso de datos invalido",
+            message: "Error de escritura en la BD o ingreso de datos invalido",
             data: req.body
         });
     } else {
         res.status(200).json({
-            messague: "Producto creado con exito"
+            message: "Producto creado con exito"
         });
     }    
 });
@@ -206,7 +206,7 @@ router.post('/product', auth.auth, auth.authRol, authProduct.authProduct, async 
  *                      schema:
  *                           type: object
  *                           properties:
- *                              messague:
+ *                              message:
  *                                  type: string
  *                                  description: "producto creado exitosamente"
  *                              parameters:
@@ -233,13 +233,13 @@ router.patch('/product/:id', auth.auth, auth.authRol, authProduct.authProductObj
     } else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin}
         });
     }
     const result = await actions.Update(query, product);
     res.status(200).json({
-        messague: `Se actualizo el producto con exito`,
+        message: `Se actualizo el producto con exito`,
         parameters: product
     });
 });
@@ -277,7 +277,7 @@ router.patch('/product/:id', auth.auth, auth.authRol, authProduct.authProductObj
  *                      schema:
  *                           type: object
  *                           properties:
- *                              messague:
+ *                              message:
  *                                  type: string
  *                                  description: "producto eliminado exitosamente"
  *                              id_product:
@@ -302,15 +302,16 @@ router.delete('/product/:id', auth.auth, auth.authRol, async (req, res)=> {
                 data: {id: req.params.id}
             })
         }
+        result = await actions.Delete('DELETE FROM detallesordenes WHERE idProducto = :id', { id: req.params.id });
         result = await actions.Delete('DELETE FROM producto WHERE id = :id', { id: req.params.id });
         res.status(200).json({
-            description: "El producto fue eliminado exitosamente",
+            message: "El producto fue eliminado exitosamente",
             id_product: req.params.id
         });
     }else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin, id: req.params.id}
         });
     }

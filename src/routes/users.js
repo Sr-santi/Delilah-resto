@@ -92,7 +92,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
     }else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin, id: req.params.id}
         });
     }
@@ -121,7 +121,7 @@ router.get('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
  *                      schema:
  *                           type: object
  *                           properties:
- *                              messague:
+ *                              message:
  *                                  type: string
  *                                  description: "usuario creado exitosamente"
  *          500:
@@ -144,12 +144,12 @@ router.post('/user', authUser.authUser, async (req, res)=> {
     if(result.error) {
         res.status(500).json({
             success: false,
-            messague: "Error de escritura en la BD o ingreso de datos invalido",
+            message: "Error de escritura en la BD o ingreso de datos invalido",
             data: req.body
         });
     } else {
         res.status(200).json({
-            messague: "Usuario creado con exito"
+            message: "Usuario creado con exito"
         });
     }    
 });
@@ -192,7 +192,7 @@ router.post('/user', authUser.authUser, async (req, res)=> {
  *                      schema:
  *                           type: object
  *                           properties:
- *                              messague:
+ *                              message:
  *                                  type: string
  *                                  description: "usuario creado exitosamente"
  *                              parameters:
@@ -220,7 +220,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
         if (req.userId !== req.params.id) {
             res.status(403).json({
                 success: false,
-                messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+                message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
                 data: {Admin: req.isAdmin, id: req.params.id}
             })
         }
@@ -228,7 +228,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
     }
     const result = await actions.Update(query, user);
     res.status(200).json({
-        messague: `Se actualizo el usuario con exito`,
+        message: `Se actualizo el usuario con exito`,
         parameters: user
     });
 });
@@ -266,7 +266,7 @@ router.patch('/user/:id', auth.auth, auth.authRol, authUser.authUserObject, asyn
  *                      schema:
  *                           type: object
  *                           properties:
- *                              messague:
+ *                              message:
  *                                  type: string
  *                                  description: "usuario eliminado exitosamente"
  *                              id_user:
@@ -287,19 +287,19 @@ router.delete('/user/:id', auth.auth, auth.authRol, async (req, res)=> {
         if (exist.length === 0) {
             res.status(404).json({
                 success: false,
-                messague: `El usuario con el id ${req.params.id} no existe`,
+                message: `El usuario con el id ${req.params.id} no existe`,
                 data: {id: req.params.id}
             })
         }
         result = await actions.Delete('DELETE FROM usuarios WHERE id = :id', { id: req.params.id });
         res.status(200).json({
-            messague: "El usuario fue eliminado exitosamente",
+            message: "El usuario fue eliminado exitosamente",
             id_user: req.params.id
         });
     }else {
         res.status(403).json({
             success: false,
-            messague: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
+            message: 'El usuario que esta intentando ingresar no tiene privilegios suficientes',
             data: {Admin: req.isAdmin, id: req.params.id}
         });
     }
@@ -353,7 +353,7 @@ module.exports = router;
  *              type: boolean
  *              description: "estado binario de la petición"
  *              example: false
- *           messague:
+ *           message:
  *              type: string
  *              description: "mensaje de error"
  *           data:
