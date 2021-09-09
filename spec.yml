@@ -1,0 +1,789 @@
+---
+openapi: 3.0.0
+info:
+  title: Deliah Resto API
+  version: 1.0.0
+  description: Esta es una documentacion escrita para el proyecto deliah resto tiene
+    todos los endpoints de la API
+  license:
+    name: MIT
+    url: ''
+servers:
+- url: http://localhost:3000/
+  description: develop
+- url: https://delahiaresto.com/
+  description: production
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserCredentials:
+      type: object
+      properties:
+        userName:
+          type: string
+          description: nombre del usuario
+          example: Sr_rios
+        password:
+          type: string
+          description: contraseña del usuario
+          example: unaClave
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id de la orden
+          example: 1
+        nombre:
+          type: string
+          description: nombre formateado de la orden
+          example: 2x hamburguesa ,4x perro caliente
+        hora:
+          type: string
+          description: hora de solicitud de la orden
+          example: '04:00:00'
+        total:
+          type: number
+          description: cantidad total de la orden en moneda local
+          example: 50000
+        tipoPago:
+          type: integer
+          description: 0 es efectivo, 1 es tarjeta de credito
+          example: 1
+        IdUser:
+          type: integer
+          description: identificador unico de usuario
+          example: '1'
+        estado:
+          type: integer
+          description: Estados posibles// 1,2,3,4,5,6. 1=Nuevo, 2=Comfirmado, 3=Preparando,
+            4=Enviado, 5=Cancelado, 6=Entregado.
+          example: '2'
+    Product-body:
+      type: object
+      properties:
+        idProducto:
+          type: integer
+          description: id del producto
+          example: 1
+        cant:
+          type: integer
+          description: cantidad de unidades de un producto
+          example: 3
+    Order-body:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            tipoPago:
+              type: integer
+              description: valor de 0 o 1, 0 es efectivo, 1 es tarjeta de credito
+              example: 0
+            IdUser:
+              type: integer
+              description: id unico de usuario
+              example: 1
+            estado:
+              type: integer
+              description: Estados posibles// 1,2,3,4,5,6. 1=Nuevo, 2=Comfirmado,
+                3=Preparando, 4=Enviado, 5=Cancelado, 6=Entregado.
+              example: 2
+        detalleOrder:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Product-body"
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id del producto
+          example: 1
+        nombre:
+          type: string
+          description: nombre del producto
+          example: Hamburguesa
+        valor:
+          type: number
+          description: Precio del producto en moneda local
+          example: 14000
+        foto:
+          type: string
+          description: URL de la foto del producto
+          example: https://bit.ly/3D8TjDD
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: id del usuario
+          example: 1
+        nombreUsuaurio:
+          type: string
+          description: nombre del usuario
+          example: Sr_rios
+        nombreCompleto:
+          type: string
+          description: nombre completo del usuario
+          example: Santiago Ríos
+        email:
+          type: string
+          description: email del usuario
+          example: santi@gmail.com
+        telefono:
+          type: string
+          description: telefono del usuario
+          example: "+573216328822"
+        direccion:
+          type: string
+          description: direccion del usuario
+          example: 'Cra 40 #22 13'
+        contrasena:
+          type: string
+          description: contraseña del usuario
+          example: unaClave
+        idRole:
+          type: integer
+          description: rol del usuario, 1 es admin y 2 es usuario comun.
+          example: '2'
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: estado binario de la petición
+          example: false
+        message:
+          type: string
+          description: mensaje de error
+        data:
+          type: object
+          description: datos que ocasionan el fallo
+security:
+- bearerAuth: []
+paths:
+  "/login":
+    post:
+      tags:
+      - Login
+      summary: Generar Token de acceso
+      description: Genera el Token de acceso
+      parameters:
+      - in: body
+        description: Credenciales de usuario, nombre de usuario y contraseña
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UserCredentials"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                type: string
+                description: Token unico de usuario
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6InVzZXIxIi
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/orders":
+    get:
+      tags:
+      - Orders
+      summary: Obtener las ordenes de la BD
+      description: Trae todas las ordenes de la base de datos para el Admin, y las
+        ordenes de los usuarios
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: todos las ordenes del sistema
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Order"
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/order/{id}":
+    get:
+      tags:
+      - Orders
+      summary: Obtener orden por id
+      description: Trae una orden dada un id
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico de orden
+        required: true
+        example: 1
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Orden buscado por id en la BD
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Order"
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    put:
+      tags:
+      - Orders
+      summary: Editar ordenes en la BD
+      description: Actualiza el estado de la orden con los valores validos 1,2,3,4,5,6
+        || 1=Nuevo, 2=Comfirmado, 3=Preparando, 4=Enviado, 5=Cancelado, 6=Entregado
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico de orden
+        required: true
+        example: 1
+        schema:
+          type: string
+      - in: body
+        description: Objeto con el nuevo valor de estado
+        required: true
+        schema:
+          type: object
+          properties:
+            estado:
+              type: number
+              description: 2
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: producto creado exitosamente
+                  parameters:
+                    type: object
+                    description: Campos con valores actualizados validos
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    delete:
+      tags:
+      - Orders
+      summary: Elimina ordenes en la BD
+      description: Elimina ordenes del sistema
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico de la orden
+        required: true
+        example: 1
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: orden Eliminada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Orden eliminada exitosamente
+                  id_order:
+                    type: number
+                    description: id de la orden eliminada
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/order":
+    post:
+      tags:
+      - Orders
+      summary: Agregar ordenes a la BD
+      description: Ingresa ordenes al sistema, Admin crea ordenes para todos y el
+        usuario solo puede crear ordenes personales
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: body
+        description: información de para crear la orden
+        schema:
+          "$ref": "#/components/schemas/Order-body"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Orden creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Orden creada exitosamente
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '500':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/products":
+    get:
+      tags:
+      - Products
+      summary: Obtener los productos de la BD
+      description: Trae todos los productos de la base de datos
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: todos los productos del sistema
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/Product"
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/product/{id}":
+    get:
+      tags:
+      - Products
+      summary: Obtener producto por id
+      description: Trae un producto dado un id
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico de producto
+        required: true
+        example: 1
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: producto buscado por id en la BD
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Product"
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    patch:
+      tags:
+      - Products
+      summary: Editar productos en la BD
+      description: Actualiza productos del sistema
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico de producto
+        required: true
+        example: 1
+        schema:
+          type: string
+      - in: body
+        description: Objeto con campos a modificar del producto, se debe de enviar
+          por lo menos uno para ser valida la petición
+        required: true
+        schema:
+          "$ref": "#/components/schemas/Product"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: producto creado exitosamente
+                  parameters:
+                    type: object
+                    description: Campos con valores actualizados validos
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    delete:
+      tags:
+      - Products
+      summary: Elimina productos en la BD
+      description: Elimina productos del sistema
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico del producto
+        required: true
+        example: 1
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: producto Eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: producto eliminado exitosamente
+                  id_product:
+                    type: number
+                    description: id de producto eliminado
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/product":
+    post:
+      tags:
+      - Products
+      summary: Agregar productos a la BD
+      description: Ingresa productos al sistema, solo permiso para el Admin
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: body
+        description: información del producto
+        schema:
+          "$ref": "#/components/schemas/Product"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: producto creado exitosamente
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '500':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/users":
+    get:
+      tags:
+      - Users
+      summary: Obtener los usuarios de la BD
+      description: Trae todos los usuarios de la base de datos para el Admin y trae
+        la información de el usuario cuando la petición la realiza un usuario sin
+        permisos de admin
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: todos los usurios del sistema
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/User"
+  "/user/{id}":
+    get:
+      tags:
+      - Users
+      summary: Obtener usuario por id
+      description: Trae un usuario dado un id, para el admin no hay restricciones,
+        para el usuario no es posible usar este endpoint
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico del usuario
+        required: true
+        example: 1
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: usuario buscado por id en la BD
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/User"
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    patch:
+      tags:
+      - Users
+      summary: Modifica los usuarios de la BD
+      description: Actualiza usuarios del sistema
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico del usuario
+        required: true
+        example: 1
+        schema:
+          type: string
+      - in: body
+        description: Objeto con campos a modificar del usuario, se debe de enviar
+          por lo menos uno para ser valida la petición
+        required: true
+        schema:
+          "$ref": "#/components/schemas/User"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: usuario creado exitosamente
+                  parameters:
+                    type: object
+                    description: Campos con valores actualizados validos
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    delete:
+      tags:
+      - Users
+      summary: Elimina usuarios en la BD
+      description: Elimina usuarios del sistema
+      parameters:
+      - in: header
+        name: authorization
+        description: Token identificador unico del usuario
+        required: true
+        example: Bearer token
+        schema:
+          type: string
+      - in: path
+        name: id
+        description: Identificador unico del usuario
+        required: true
+        example: 1
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Usuario Eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: usuario eliminado exitosamente
+                  id_user:
+                    type: number
+                    description: id de usuario eliminado
+        '400':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/user":
+    post:
+      tags:
+      - Users
+      summary: Agrega usuarios en la BD
+      description: Ingresa usuarios del sistema
+      parameters:
+      - in: body
+        description: información del usuario
+        schema:
+          "$ref": "#/components/schemas/User"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: usuario creado exitosamente
+        '500':
+          description: acceso denegado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+tags: []
