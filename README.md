@@ -1,7 +1,7 @@
 # Delilah-resto
 Online ordering system
 
-the projecto provides 4 endpoints:
+the project provides 4 endpoints:
 * login: get the access token
 * users: manage the user information
 * products: manage the product information
@@ -9,9 +9,9 @@ the projecto provides 4 endpoints:
 
 ## Implementation:
 
-* Node.js
+* Node.js (express)
 * JSON Web Token (JWT)
-* MySQL
+* MySQL (sequalize)
 
 ## Instructions to use this project:
 You need to firstly install Node.JS:
@@ -30,3 +30,16 @@ with SSH:
 ```
 $ git clone git@github.com:Sr-santi/Delilah-resto.git
 ```
+
+### install dependencies
+run this command to install all the packages needed in the project:
+```
+$ npm i
+```
+
+## database connection:
+send a message to santiriosolaya@gmail.com requesting database access.
+* you must send your public ip address
+
+note: remember, your public ip address changes always you stablish a new connection in your network
+the database is hosting in google cloud.
