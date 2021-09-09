@@ -43,3 +43,9 @@ send a message to santiriosolaya@gmail.com requesting database access.
 
 note: remember, your public ip address changes always you stablish a new connection in your network
 the database is hosting in google cloud.
+
+## Init server
+run the next command in your console:
+```
+$ npm start
+```
