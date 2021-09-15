@@ -60,11 +60,11 @@ const database = new Sequelize('mysql://user:password@hosting:port/DB_name'); //
 ```
 
 enter your credentials:
-Change the value user with your data base user.
-Change the value password with your data base connection password
-Change the value hosting with localhost or your cloud service hosting
-Change the value port with 3306 (default port) or your data base connection port.
-Change the value DB_name with delilahresto or the name you configured in Workbench
+- Change the value user with your data base user.
+- Change the value password with your data base connection password
+- Change the value hosting with localhost or your cloud service hosting
+- Change the value port with 3306 (default port) or your data base connection port.
+- Change the value DB_name with delilahresto or the name you configured in Workbench
 
 ## Init server
 run the next command in your console:
