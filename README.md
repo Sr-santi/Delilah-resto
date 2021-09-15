@@ -14,6 +14,12 @@ the project provides 4 endpoints:
 * MySQL (sequalize)
 
 ## Instructions to use this project:
+
+### Necessary programs:
+- [Visual Studio Code](https://code.visualstudio.com/): LTS
+- [node.js](https://nodejs.org/es/): Version 14.17.6 LTS
+- [mySQL](https://dev.mysql.com/downloads/mysql/): Version 8.0.26
+
 You need to firstly install Node.JS:
 * Windows: go to official project page and download the [latest stable version](https://nodejs.org/en/download/)
 * Linux: npm and Node.js binary distributions are available  in Debian and Ubuntu based linux distributions 
@@ -37,12 +43,28 @@ run this command to install all the packages needed in the project:
 $ npm i
 ```
 
-## database connection:
-send a message to santiriosolaya@gmail.com requesting database access.
-* you must send your public ip address
+## Import database to Workbench
 
-note: remember, your public ip address changes always you stablish a new connection in your network
-the database is hosting in google cloud.
+- Create a connection, stablish the connection name , password, user and port of use default values
+- Click in _server_ tag, choose _data import_ option
+- In the _data import window_ , select _Import from Self-contained File_ option in _Import Options_ field.
+- In _Default Schema to be imported To_ field , select a _Default Target Schema_ or create one (recommendation: create a Schema named delilahresto)
+- Click in _start import_ button.
+
+## database connection:
+_Open your database manager, in this case will be used Workbench:_
+- modify the file actions in the route _/src/database/actions.js
+
+```
+const database = new Sequelize('mysql://user:password@hosting:port/DB_name'); //actual value
+```
+
+enter your credentials:
+Change the value user with your data base user.
+Change the value password with your data base connection password
+Change the value hosting with localhost or your cloud service hosting
+Change the value port with 3306 (default port) or your data base connection port.
+Change the value DB_name with delilahresto or the name you configured in Workbench
 
 ## Init server
 run the next command in your console:

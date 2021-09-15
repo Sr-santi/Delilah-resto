@@ -1,16 +1,5 @@
 const { Sequelize } = require('sequelize');
-const database = new Sequelize('mysql://root:unaclave@35.196.27.7/delilahresto');
-
-//prueba
-/* async function dbConnection() {
-    try {
-        await database.authenticate();
-        console.log('Connection has been established successfully.');
-      } catch (error) {
-        console.error('Unable to connect to the database:', error);
-      }
-}
-dbConnection() */
+const database = new Sequelize('mysql://user:password@dominio:puerto/DB_name');
 
 module.exports.Select = async (query, data) => {
    return await database.query(query, { 
